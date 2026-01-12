@@ -43,3 +43,22 @@ def get_user_by_email(email):
     conn.close()
     
     return user
+
+def create_task(user_id, task_text, task_date):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = """
+                INSERT INTO daily_tasks(user_id, task_text, task_date, completed)
+                VALUES(%s, %s, %s, FALSE)
+            """
+    
+    cursor.execute(query, (user_id, task_text, task_date))
+    conn.commit()
+    
+    task_id = cursor.lastrowid
+    
+    cursor.close()
+    conn.close()
+    
+    return task_id
