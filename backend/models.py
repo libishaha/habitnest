@@ -62,3 +62,46 @@ def create_task(user_id, task_text, task_date):
     conn.close()
     
     return task_id
+
+def get_tasks_by_date(user_id, task_date):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    query = """ select id, task_text, task_date, completed, created_at
+                from daily_tasks
+                where user_id = %s and task_date = %s
+                order by created_at desc
+            """
+    
+    cursor.execute(query, (user_id, task_date))
+    tasks = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return tasks
+
+def toggle_task_complete(task_id, user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    check_query = """ select completed from daily_tasks where id = %s and user_id = %s """
+    cursor.execute(check_query,(task_id, user_id))
+    result = cursor.fetchone()
+    
+    if not result:
+        cursor.close()
+        conn.close()
+        return False
+    
+    current_status = result[0]
+    new_status = not current_status
+    
+    query = """update daily_tasks set completed = %s where id = %s and user_id = %s"""
+    cursor.execute(query, (new_status, task_id, user_id))
+    conn.commit()
+    
+    cursor.close()
+    conn.close()
+    
+    return True
