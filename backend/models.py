@@ -105,3 +105,18 @@ def toggle_task_complete(task_id, user_id):
     conn.close()
     
     return True
+
+def delete_task(task_id, user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = """delete from daily_tasks where id = %s and  user_id = %s"""
+    cursor.execute(query, (task_id, user_id))
+    conn.commit()
+    
+    rows_deleted = cursor.rowcount()
+    
+    cursor.close()
+    conn.close()
+    
+    return rows_deleted > 0
