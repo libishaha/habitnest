@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from models import get_db_connection, create_user, get_user_by_email
+from models import get_db_connection, create_user, get_user_by_email, create_task, toggle_task_complete, delete_task, get_tasks_by_date
 from werkzeug.security import check_password_hash
+from datetime import date
 
 
 main_routes = Blueprint("main_routes", __name__)
@@ -74,6 +75,23 @@ def profile():
         "message" : "This is a protected route"
     }), 200
 
-        
-        
-        
+@main_routes.route("/tasks", methods = ["POST"])
+@jwt_required()
+def add_task():
+    current_user = get_jwt_identity()
+    
+    data = request.get_json()
+    task_text = data.get("task_text")
+    task_date = data.get("task_date")
+    
+    if not task_text:
+        return jsonify({"status" : "error", "message" : "Task text is required"}),400
+    
+    if not task_date:
+        task_date = str(date.today())
+    
+    try:
+        task_id = create_task(int(current_user), task_text, task_date)
+        return jsonify({"status" : "success", "message" : "Task created", "task_id" : task_id}), 201
+    except Exception as e:
+        return jsonify({"ststus" : "error", "message" : str(e)}), 500
