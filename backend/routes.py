@@ -95,3 +95,41 @@ def add_task():
         return jsonify({"status" : "success", "message" : "Task created", "task_id" : task_id}), 201
     except Exception as e:
         return jsonify({"ststus" : "error", "message" : str(e)}), 500
+
+@main_routes.route("/tasks", methods=["GET"])
+@jwt_required()
+def get_tasks():
+    current_user_id = get_jwt_identity()
+    
+    task_date = request.args.get("date", str(date.today()))
+    
+    try:
+        tasks = get_tasks_by_date(int(current_user_id), task_date)
+        return jsonify({
+            "status": "success",
+            "tasks": tasks,
+            "date": task_date
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@main_routes.route("/tasks/<int:task_id>/toggle", methods=["PUT"])
+@jwt_required()
+def toggle_task(task_id):
+    current_user_id = get_jwt_identity()
+    
+    try:
+        success = toggle_task_complete(task_id, int(current_user_id))
+        
+        if success:
+            return jsonify({
+                "status": "success",
+                "message": "Task updated"
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Task not found or unauthorized"
+            }), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
