@@ -133,3 +133,25 @@ def toggle_task(task_id):
             }), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+    in_routes.route("/tasks/<int:task_id>", methods=["DELETE"])
+@jwt_required()
+def remove_task(task_id):
+    """Delete a task"""
+    current_user_id = get_jwt_identity()
+    
+    try:
+        success = delete_task(task_id, int(current_user_id))
+        
+        if success:
+            return jsonify({
+                "status": "success",
+                "message": "Task deleted"
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Task not found or unauthorized"
+            }), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
